@@ -1,0 +1,132 @@
+# AIM (Agent Identity Management) self-hosted minimal stack.
+# Adapted from opena2a-org/agent-identity-management's own
+# docker-compose.quickstart.yml (Apache 2.0) — same four services
+# (aim-postgres, aim-redis, aim-backend, aim-frontend), no
+# Elasticsearch/MinIO/NATS/Prometheus/Grafana/Loki per CLAUDE.md Phase 2.
+# Backend/frontend ports are bound to 127.0.0.1 here (upstream's quickstart
+# file does not) to match this repo's localhost-only network guardrail.
+
+services:
+  aim-postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: aim-postgres
+    environment:
+      POSTGRES_DB: identity
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${AIM_POSTGRES_PASSWORD:?Set AIM_POSTGRES_PASSWORD in .env}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "127.0.0.1:${AIM_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - aim-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d identity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    networks:
+      - aim-network
+
+  aim-redis:
+    image: redis:7-alpine
+    container_name: aim-redis
+    command: redis-server --requirepass ${AIM_REDIS_PASSWORD:?Set AIM_REDIS_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${AIM_REDIS_PORT:-6379}:6379"
+    volumes:
+      - aim-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+    networks:
+      - aim-network
+
+  aim-backend:
+    image: ghcr.io/opena2a-org/aim-server:latest
+    container_name: aim-backend
+    environment:
+      - POSTGRES_HOST=aim-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${AIM_POSTGRES_PASSWORD:?Set AIM_POSTGRES_PASSWORD in .env}
+      - POSTGRES_DB=identity
+      - POSTGRES_SSL_MODE=disable
+      - REDIS_HOST=aim-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${AIM_REDIS_PASSWORD:?Set AIM_REDIS_PASSWORD in .env}
+      - JWT_SECRET=${AIM_JWT_SECRET:?Set AIM_JWT_SECRET in .env}
+      - KEYVAULT_MASTER_KEY=${AIM_KEYVAULT_MASTER_KEY:?Set AIM_KEYVAULT_MASTER_KEY in .env}
+      - FRONTEND_URL=http://localhost:${AIM_FRONTEND_PORT:-3000}
+      - ALLOWED_ORIGINS=http://localhost:${AIM_FRONTEND_PORT:-3000}
+      - ENVIRONMENT=development
+      - ADMIN_EMAIL=${AIM_ADMIN_EMAIL:-admin@demo-corp.test}
+      - ADMIN_PASSWORD=${AIM_ADMIN_PASSWORD:?Set AIM_ADMIN_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${AIM_BACKEND_PORT:-8080}:8080"
+    depends_on:
+      aim-postgres:
+        condition: service_healthy
+      aim-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "-O", "/dev/null", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    networks:
+      - aim-network
+
+  aim-frontend:
+    # Built locally from vendor/aim source (see aim/README-local-build.md):
+    # the published ghcr.io image bakes NEXT_PUBLIC_API_URL=http://localhost:8080
+    # at build time (Next.js public env vars are compile-time, not runtime),
+    # and port 8080 was already in local use, so we rebuild with our real port.
+    image: reco-lab/aim-frontend:local
+    container_name: aim-frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:${AIM_BACKEND_PORT:-8080}
+      - NODE_ENV=production
+    ports:
+      - "127.0.0.1:${AIM_FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      aim-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://0.0.0.0:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    networks:
+      - aim-network
+
+volumes:
+  aim-postgres-data:
+  aim-redis-data:
+
+networks:
+  aim-network:
+    driver: bridge

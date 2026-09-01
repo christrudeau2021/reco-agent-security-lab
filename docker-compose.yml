@@ -1,3 +1,6 @@
+include:
+  - aim/docker-compose.aim.yml
+
 services:
   neo4j:
     image: neo4j:5-community
@@ -25,8 +28,7 @@ services:
       retries: 10
 
   # AIM minimal stack (aim-postgres, aim-backend, aim-frontend, aim-redis) is
-  # wired in during Phase 2 via aim/docker-compose.aim.yml (`include:`).
-  # Do not add the AIM services here until that file exists — see CLAUDE.md Phase 2.
+  # wired in via the `include:` at the top of this file — see aim/docker-compose.aim.yml.
 
   # Unifying dashboard UI is wired in during Phase 5 — see CLAUDE.md Phase 5.
 

@@ -19,3 +19,7 @@ build/
 data/
 neo4j-data/
 postgres-data/
+
+# Upstream source checked out locally to read docs / build images from —
+# not vendored into this repo. See aim/README-local-build.md.
+vendor/
