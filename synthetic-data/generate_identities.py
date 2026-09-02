@@ -39,9 +39,7 @@ constraint violation instead of silently duplicating nodes.
 Idempotent: rerunning with the same --seed/--domain/--max-users produces
 identical node and relationship counts — every write is a MERGE keyed on a
 stable id, never a CREATE. Capped by --max-users (SYNTH_MAX_USERS in .env)
-so a bad run can't fill the database; this is a separate cap from
-SYNTH_MAX_EVENTS, which CLAUDE.md scopes to Phase 4's agent-action loop,
-not identity generation.
+so a bad run can't fill the database.
 """
 
 import argparse
