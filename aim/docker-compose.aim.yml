@@ -69,7 +69,10 @@ services:
       - JWT_SECRET=${AIM_JWT_SECRET:?Set AIM_JWT_SECRET in .env}
       - KEYVAULT_MASTER_KEY=${AIM_KEYVAULT_MASTER_KEY:?Set AIM_KEYVAULT_MASTER_KEY in .env}
       - FRONTEND_URL=http://localhost:${AIM_FRONTEND_PORT:-3000}
-      - ALLOWED_ORIGINS=http://localhost:${AIM_FRONTEND_PORT:-3000}
+      # Includes UI_PORT (the Phase 5 Discover/Prioritize/Remediate app,
+      # not AIM's own dashboard) so its browser-side calls to this backend
+      # aren't blocked by CORS.
+      - ALLOWED_ORIGINS=http://localhost:${AIM_FRONTEND_PORT:-3000},http://localhost:${UI_PORT:-5173}
       - ENVIRONMENT=development
       - ADMIN_EMAIL=${AIM_ADMIN_EMAIL:-admin@demo-corp.test}
       - ADMIN_PASSWORD=${AIM_ADMIN_PASSWORD:?Set AIM_ADMIN_PASSWORD in .env}

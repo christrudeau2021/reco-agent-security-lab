@@ -30,7 +30,28 @@ services:
   # AIM minimal stack (aim-postgres, aim-backend, aim-frontend, aim-redis) is
   # wired in via the `include:` at the top of this file — see aim/docker-compose.aim.yml.
 
-  # Unifying dashboard UI is wired in during Phase 5 — see CLAUDE.md Phase 5.
+  ui:
+    build:
+      context: ./ui
+      args:
+        VITE_NEO4J_URI: ${VITE_NEO4J_URI}
+        VITE_NEO4J_USER: ${VITE_NEO4J_USER}
+        VITE_NEO4J_PASSWORD: ${VITE_NEO4J_PASSWORD}
+        VITE_AIM_API_URL: ${VITE_AIM_API_URL}
+        VITE_AIM_VIEWER_EMAIL: ${VITE_AIM_VIEWER_EMAIL}
+        VITE_AIM_VIEWER_PASSWORD: ${VITE_AIM_VIEWER_PASSWORD}
+    container_name: reco-lab-ui
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${UI_PORT:-5173}:80"
+    depends_on:
+      - neo4j
+      - aim-backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
 
 volumes:
   neo4j-data:

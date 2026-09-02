@@ -45,6 +45,24 @@ curl -sf -X PUT "http://localhost:${AIM_BACKEND_PORT:-8090}/api/v1/admin/enforce
   -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "Content-Type: application/json" \
   -d '{"enforcementMode":"strict"}' >/dev/null
 
+# The Phase 5 UI authenticates as a dedicated least-privilege account, not
+# the real admin (see .env.example for why) — register it, approve it, and
+# promote it to "manager" (the minimum role that can read
+# /security/violations; there's no lower read-only role that can). This
+# account lives in AIM's Postgres, which docker compose down -v just wiped,
+# so it must be recreated on every reset just like the admin account above.
+echo "==> Creating dedicated ui-viewer account for the Phase 5 UI"
+REGISTER_RESPONSE=$(curl -sf -X POST "http://localhost:${AIM_BACKEND_PORT:-8090}/api/v1/public/register" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"${VITE_AIM_VIEWER_EMAIL}\",\"firstName\":\"UI\",\"lastName\":\"Viewer\",\"password\":\"${VITE_AIM_VIEWER_PASSWORD}\"}")
+REQUEST_ID=$(echo "$REGISTER_RESPONSE" | python3 -c "import json,sys; print(json.load(sys.stdin)['requestId'])")
+APPROVE_RESPONSE=$(curl -sf -X POST "http://localhost:${AIM_BACKEND_PORT:-8090}/api/v1/admin/registration-requests/${REQUEST_ID}/approve" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "Content-Type: application/json" -d '{}')
+VIEWER_USER_ID=$(echo "$APPROVE_RESPONSE" | python3 -c "import json,sys; print(json.load(sys.stdin)['user']['id'])")
+curl -sf -X PUT "http://localhost:${AIM_BACKEND_PORT:-8090}/api/v1/admin/users/${VIEWER_USER_ID}/role" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "Content-Type: application/json" \
+  -d '{"role":"manager"}' >/dev/null
+
 # aim-sdk's local credential cache (~/.aim/) lives outside any Docker volume,
 # so `docker compose down -v` wipes the server-side org/user/agent records
 # but leaves stale local credentials pointing at dead ids. Without this,
@@ -108,6 +126,8 @@ if [ -d .venv-synth ]; then
 fi
 
 echo "==> Stack reset."
+echo "    Unified UI:    http://localhost:${UI_PORT:-5173}"
 echo "    AIM dashboard: http://localhost:${AIM_FRONTEND_PORT:-3000}  (login: ${AIM_ADMIN_EMAIL:-admin@opena2a.org})"
 echo "    Cartography's GitHub sync is not run here (costs a live API round"
 echo "    trip) — see cartography/modules.md to rerun it."
+echo "    If ui/ changed since the last build, rerun: docker compose up -d --build ui"

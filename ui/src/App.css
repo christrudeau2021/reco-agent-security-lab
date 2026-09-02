@@ -1,0 +1,216 @@
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.app-header h1 {
+  margin: 0 0 4px;
+  font-size: 28px;
+}
+
+.app-subtitle {
+  margin: 0 0 24px;
+  color: var(--text);
+  font-size: 14px;
+  max-width: 640px;
+}
+
+.tab-nav {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.tab-nav button {
+  padding: 10px 18px;
+  border: none;
+  background: none;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab-nav button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.loading,
+.error-banner {
+  padding: 16px;
+}
+
+.error-banner {
+  color: var(--critical);
+  background: var(--critical-bg);
+  border-radius: 6px;
+}
+
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.tab-intro {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.empty-state {
+  color: var(--text);
+  font-style: italic;
+  font-size: 14px;
+}
+
+.stat-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.stat {
+  min-width: 90px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+th, td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+details summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.finding-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.finding {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.finding-critical { background: var(--critical-bg); }
+.finding-high { background: var(--high-bg); }
+.finding-medium { background: var(--medium-bg); }
+
+.severity-badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #fff;
+}
+
+.severity-critical { background: var(--critical); }
+.severity-high { background: var(--high); }
+.severity-medium { background: var(--medium); }
+
+.finding-body {
+  flex: 1;
+}
+
+.finding-title {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.finding-subtitle,
+.finding-detail {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.finding button {
+  align-self: center;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.finding button:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.action-log {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 13px;
+}
+
+.action-log li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.action-time {
+  color: var(--text);
+  margin-right: 8px;
+}
