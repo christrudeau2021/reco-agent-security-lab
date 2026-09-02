@@ -45,9 +45,22 @@ curl -sf -X PUT "http://localhost:${AIM_BACKEND_PORT:-8090}/api/v1/admin/enforce
   -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "Content-Type: application/json" \
   -d '{"enforcementMode":"strict"}' >/dev/null
 
+if [ -d .venv-synth ]; then
+  echo "==> Seeding synthetic identity data"
+  # shellcheck disable=SC1091
+  source .venv-synth/bin/activate
+  python synthetic-data/generate_identities.py
+  deactivate
+else
+  echo "==> .venv-synth not found — skipping synthetic identity seed" >&2
+  echo "    python3 -m venv .venv-synth && .venv-synth/bin/pip install faker neo4j" >&2
+fi
+
 echo "==> Stack reset."
 echo "    AIM dashboard: http://localhost:${AIM_FRONTEND_PORT:-3000}  (login: ${AIM_ADMIN_EMAIL:-admin@opena2a.org})"
 echo "    Newly-registered agents still need 'Verify agent' clicked in the"
 echo "    dashboard before strict mode differentiates their capabilities —"
 echo "    see aim/README-local-build.md."
-echo "    Run synthetic-data generators next (Phase 3+)."
+echo "    Cartography's GitHub sync is not run here (costs a live API round"
+echo "    trip) — see cartography/modules.md to rerun it."
+echo "    Agent-side synthetic data (Phase 4+) still needs to be run separately."
